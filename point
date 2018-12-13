@@ -1,0 +1,134 @@
+1. Razor 页面的 Partial 现阶段不能加 @page, 不然会报 Model 错误;
+2. NET 中可处理 WebSocket, 与 .NET Core 有较大差别, 给以下方法传递一个签名为 void  AcceptAsync(AspNetWebSocketContext context) 的方法即可;
+	if (HttpContext.IsWebSocketRequest)
+    {
+        HttpContext.AcceptWebSocketRequest(this.AcceptAsync);
+    }
+	如:
+	var ws = context.WebSocket;
+
+    var buffer = new ArraySegment<byte>(new byte[1024]);
+
+    while (ws.State == WebSocketState.Open)
+    {
+        var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+
+        var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+
+        Debug.WriteLine("receive: " + message);
+
+        for (int i = 0; i < 10; i++)
+        {
+            await ws.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("666")), WebSocketMessageType.Text, true, CancellationToken.None);
+
+            Thread.Sleep(1000);
+        }
+
+        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "colse", CancellationToken.None);
+    }
+	另外, WebSocket 也是有加密和不加密之分的;
+3. typeof(OidcScopes).GetEnumNames() 可以获取枚举的所有成员
+4. EFCore 是标准库, 所有可以在 NET 中运行, 但是因为第三方库的引用原因, 可能会导致失败;
+5. EFCore 的 ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking; 可以阻止查询的 model 被跟踪;
+6. NET Core 可以使用以下快捷操作配置文件:
+	var hb = Configuration.GetValue<string>("HB:SB");
+	var hbs = Configuration.GetValue<string>("User:Nick");
+
+	services.Configure<HB>(Configuration.GetSection("HB"));
+	services.Configure<User>(Configuration.GetSection("User"));
+7. 一段操作 X509 证书和 NET Core Files 的代码:
+	var thumbs = Request.Form.Files.GetFiles("cert");
+
+    foreach (var item in thumbs)
+    {
+        var stream = item.OpenReadStream();
+
+        byte[] buffer = new byte[stream.Length];
+
+        await stream.ReadAsync(buffer, 0, (int)stream.Length);
+                
+        var cert = new X509Certificate2(buffer, "123456");
+
+        var value = cert.Thumbprint;
+
+        var body = cert.GetRawCertDataString();
+
+        var base64 = Convert.ToBase64String(cert.GetRawCertData());
+    }
+8. 使用 Type.GetType() 需要使用完整限定名, 如: var i = Type.GetType("System.Int32");
+9. 使用 var reader = new JsonTextReader(new StringReader(json)); 便能通过 Newtonsoft.Json 读取 Json;
+10. Newtonsoft.Json 序列化时会将当前对象的所有属性序列化, 而不是只序列化当前的基类变量的成员;
+	Newtonsoft.Json 反序列化的类型可以是接口;
+11. yield return 可以不连贯返回, 可随机返回;
+12. 一般 AES 加密算法如下(配合 Base64):
+	public string AesEncrypt(string str, string key)
+    {
+        if (string.IsNullOrEmpty(str)) return null;
+
+        Byte[] toEncryptArray = Encoding.UTF8.GetBytes(str);
+
+        RijndaelManaged rm = new RijndaelManaged
+        {
+            KeySize = 128,
+            Key = Encoding.UTF8.GetBytes(key),
+            Mode = CipherMode.CBC,
+            Padding = PaddingMode.PKCS7
+        };
+
+        ICryptoTransform cTransform = rm.CreateEncryptor();
+
+        Byte[] resultArray = cTransform.TransformFinalBlock(toEncryptArray, 0, toEncryptArray.Length);
+
+        return Convert.ToBase64String(resultArray, 0, resultArray.Length);
+    }
+	一般填充方式 PaddingMode 会选择 Zeros;
+13. 微软提供 ExpressionVisitor 来已访问者的方式访问表达式树, 一般使用:
+	UpdateMemberAccess updateMemberAccess = new UpdateMemberAccess();
+	lambda = updateMemberAccess.Visit(lambda);
+14. EF 中, 子类可以隐藏父类成员的方式来使某成员不被写入数据库: 
+	[NotMapped]
+	public new string Test { get; set; }
+15. Sqllite: UseSqlite("Data Source=test.db");
+16. 比较器
+	class ObCmp : IEqualityComparer<object>
+    {
+        public new bool Equals(object x, object y)
+        {
+            return x == y;
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return 0;
+        }
+    }
+	== 操作符会前后调用者两个方法;
+17. 委托可以被封装在表达式中, 当作是一个常量;
+18. lock 为悲观锁
+19. 表达式代码段:
+	var p = Expression.Parameter(typeof(int));
+
+    var v = Expression.Variable(typeof(string));
+
+    var taget = Expression.Label(typeof(string));
+    var lable = Expression.Label(taget, Expression.Constant(""));
+
+    var s = Expression.Lambda(
+        Expression.Block(Expression.IfThenElse(
+        Expression.Equal(p, Expression.Constant(2)),
+        Expression.Return(taget, Expression.Constant("2")),
+        Expression.Return(taget, Expression.Constant("3"))),
+        lable), p);
+20. 构建泛型类: typeof(Nullable<>).MakeGenericType(typeof(int));
+21. LINQ 求差: Except;
+22. Round 四舍六入五取偶 Console.WriteLine(Math.Round(2.226, 2, MidpointRounding.AwayFromZero));
+	可添加 枚举实现 四舍五入;
+23. 判断标点: char.IsPunctuation('*')
+24. Json 两中取值方法, 直接序列化和 JObject、JArray、JToken
+25. 内部捕获了异常, 便不会再往外抛出;
+26. 表达式内部有的拆箱和装箱会进行, 所以不能将 object 直接比较, 一定要转换为确定类型之后再比较;
+27. 时间戳转当前时间: new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(1);
+28. 操作 X509 证书: X509Certificate2;
+29. StartsWith 会忽略前面的空格;
+30. 反射可以通过 GetMethod(Type) 的重载来取方法 typeof(Program).GetMethod("Ts", new Type[] { typeof(int) });;
+31. 构建泛型方法: method.MakeGenericMethod(typeof(Users));

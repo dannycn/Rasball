@@ -1,0 +1,23 @@
+.EF Core 跨数据库
+LocalDB
+SQL Server
+SQLite
+MySQL
+PostgetSQL
+内存数据库(UseInMemoryDatabase)
+
+配置：
+1. DbContext 的建立
+2. StartUp 文件中、ConfigureServices 中添加配置 AddDbContext,并且修改其中的 option，修改成要使用的数据和连接字符串
+3. appsettings.json 配置文件中的连接字符串 ConnectionStrings
+格式：
+SQL Server："connectionstringsname":"server=;database=;Trusted_connection=;MultipleActiveResultSets=;"
+SQLite："connectionstringsname":"Data Source=WebAppMvcDemo.db"
+MemoryDatebase: "connectionstringsname":"WebAppMvcDb"
+MySQL："connectionstringsname":"server=.;port=3306;database=WebAppMvcDemo;uid=root;password=appeon;"
+PostgreSQL："connectionstringsname":"server=127.0.0.1;port=5432;Database=WebAppMvcDemo;uid=postgres;pwd=appeon;"
+
+未解决问题：MYSQL的主键自动增长问题
+
+ef core database first
+scaffold-dbcontext "Server=192.0.0.68;database=AppeonDB;Integrated Security=false;user id=sa;password=appeon" Microsoft.EntityFrameworkCore.SqlServer -outputdir EFCore/Models
