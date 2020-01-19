@@ -1,3 +1,58 @@
-^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$
+public static void TarCreateFromStream()
+{
 
-^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$
+// 创建输出流。不必是磁盘，可以是内存流等。
+string tarOutFn = @"d:\test.tar";
+Stream outStream = File.Create(tarOutFn);
+TarOutputStream tarOutputStream = new TarOutputStream(outStream);
+
+CreateTarArchive(tarOutputStream, @"D:\文件夹");
+
+// 关闭归档文件也关闭底层流。
+tarOutputStream.Close();
+}
+
+private static void CreateTarArchive(TarOutputStream tarOutputStream, string sourceDirectory)
+{
+// 可选地，为目录本身写一个条目。
+// TarEntry tarEntry = TarEntry.CreateEntryFromFile(sourceDirectory);
+// tarOutputStream.PutNextEntry(tarEntry);
+// 将每个文件写入tar。
+string[] filenames = Directory.GetFiles(sourceDirectory);
+
+foreach (string filename in filenames)
+{
+using (Stream inputStream = File.OpenRead(filename))
+{
+int idxStart = filename.LastIndexOf('\\') + 1;
+string tarName = filename.Substring(idxStart, filename.Length - idxStart);
+long fileSize = inputStream.Length;
+TarEntry entry = TarEntry.CreateTarEntry(tarName);
+
+// 必须设置大小，否则当输出超过时，TAROutPutsFipe将失败。
+entry.Size = fileSize;
+
+// 在写入数据之前，将条目添加到TAR流中。
+tarOutputStream.PutNextEntry(entry);
+
+// 这是从TracSovi.Read EngyCype复制的
+byte[] localBuffer = new byte[32 * 1024];
+while (true)
+{
+int numRead = inputStream.Read(localBuffer, 0, localBuffer.Length);
+if (numRead <= 0)
+{
+break;
+}
+tarOutputStream.Write(localBuffer, 0, numRead);
+}
+}
+tarOutputStream.CloseEntry();
+}
+// 递归。如果不需要就删除。
+//string[] directories = Directory.GetDirectories(sourceDirectory);
+//foreach (string directory in directories)
+//{
+// CreateTarArchive(tarOutputStream, directory);
+//}
+}
