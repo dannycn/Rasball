@@ -1,0 +1,3 @@
+System.Collections.Concurrent;
+
+ConcurrentBag<> 元素顺序会和 Add 顺序相反，反复序列化反序列化等操作会导致顺序反复改变，变得琢磨不定，所以当其元素需要依赖顺序时，可以考虑定义一个排序字段解决。
