@@ -57,3 +57,7 @@ tarOutputStream.CloseEntry();
 //}
 }
 ACFF5EE7ACA8F0174DF81C9475E665FA
+
+<Assembly SourcePath="..\source\repos\WebApplication1\WebApplication1\bin\Debug\netcoreapp3.1\WebApplication1.dll" TargetPath="..\source\repos\WebApplication1\WebApplication1\bin\Debug\netcoreapp3.1\WebApplication1.dll" EncryptStrings="true" ControlFlowObfuscation="true" ObfuscateNames="true" VirtualizeCode="false" ProtectEmbeddedResources="false" OverrideInformationSpecifiedInAttributes="true">
+      <Methods />
+    </Assembly>
