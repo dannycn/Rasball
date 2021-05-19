@@ -1,3 +1,4 @@
+Endpoint=https://apipstest.azconfig.io;Id=0knh-lb-s0:CB1Yjrqn6wdzEiGKYGt+;Secret=Mq8Qqg+rUH434AQhYFdEy9SYA8IAW+IkovBn/xT8FPE=
 public static void TarCreateFromStream()
 {
 
